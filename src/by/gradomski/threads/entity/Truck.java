@@ -12,4 +12,55 @@ public class Truck {
         this.capacity = capacity;
         this.hasFriedge = hasFriedge;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public boolean hasFriedge() {
+        return hasFriedge;
+    }
+
+    public void setHasFriedge(boolean hasFriedge) {
+        this.hasFriedge = hasFriedge;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Truck truck = (Truck) o;
+        if (id != truck.id) {
+            return false;
+        }
+        if (capacity != truck.capacity) {
+            return false;
+        }
+        return hasFriedge == truck.hasFriedge;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + capacity;
+        result = 31 * result + (hasFriedge ? 1 : 0);
+        return result;
+    }
 }
