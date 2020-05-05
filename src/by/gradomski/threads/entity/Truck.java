@@ -1,6 +1,6 @@
 package by.gradomski.threads.entity;
 
-public class Truck {
+public class Truck implements Comparable<Truck>{
     private int id;
     private int capacity;
     private boolean hasFriedge;
@@ -38,6 +38,17 @@ public class Truck {
     }
 
     @Override
+    public int compareTo(Truck o) {
+        if(hasFriedge && !o.hasFriedge()){
+            return -1;
+        }
+        if (!hasFriedge && o.hasFriedge){
+            return +1;
+        }
+        return 0;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -62,5 +73,18 @@ public class Truck {
         result = 31 * result + capacity;
         result = 31 * result + (hasFriedge ? 1 : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(getClass().getName());
+        builder.append(", ");
+        builder.append(id);
+        builder.append(", ");
+        builder.append(capacity);
+        builder.append(", ");
+        builder.append(hasFriedge);
+        return builder.toString();
     }
 }
