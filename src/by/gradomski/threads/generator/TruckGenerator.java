@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class TruckGenerator extends Thread{
     private TruckQueue truckQueue;
@@ -29,7 +30,7 @@ public class TruckGenerator extends Thread{
             System.out.println("Created: " + truck.getId() + ", " + truck.getCapacity() + ", " + truck.hasFriedge());
             truckQueue.addTruck(truck);
             try {
-                Thread.sleep(250);
+                TimeUnit.MILLISECONDS.sleep(100);
             } catch (InterruptedException e){
                 e.printStackTrace();
             }
