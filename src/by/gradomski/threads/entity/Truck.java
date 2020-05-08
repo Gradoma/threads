@@ -3,14 +3,14 @@ package by.gradomski.threads.entity;
 public class Truck implements Comparable<Truck>{
     private int id;
     private int capacity;
-    private boolean hasFriedge;
+    private boolean hasFridge;
 
     public Truck(){}
 
-    public Truck(int id, int capacity, boolean hasFriedge){
+    public Truck(int id, int capacity, boolean hasFridge){
         this.id = id;
         this.capacity = capacity;
-        this.hasFriedge = hasFriedge;
+        this.hasFridge = hasFridge;
     }
 
     public int getTruckId() {
@@ -29,20 +29,20 @@ public class Truck implements Comparable<Truck>{
         this.capacity = capacity;
     }
 
-    public boolean hasFriedge() {
-        return hasFriedge;
+    public boolean hasFridge() {
+        return hasFridge;
     }
 
-    public void setHasFriedge(boolean hasFriedge) {
-        this.hasFriedge = hasFriedge;
+    public void setHasFridge(boolean hasFridge) {
+        this.hasFridge = hasFridge;
     }
 
     @Override
     public int compareTo(Truck o) {
-        if(hasFriedge && !o.hasFriedge()){
+        if(hasFridge && !o.hasFridge()){
             return -1;
         }
-        if (!hasFriedge && o.hasFriedge){
+        if (!hasFridge && o.hasFridge){
             return +1;
         }
         return 0;
@@ -64,14 +64,14 @@ public class Truck implements Comparable<Truck>{
         if (capacity != truck.capacity) {
             return false;
         }
-        return hasFriedge == truck.hasFriedge;
+        return hasFridge == truck.hasFridge;
     }
 
     @Override
     public int hashCode() {
         int result = id;
         result = 31 * result + capacity;
-        result = 31 * result + (hasFriedge ? 1 : 0);
+        result = 31 * result + (hasFridge ? 1 : 0);
         return result;
     }
 
@@ -84,7 +84,7 @@ public class Truck implements Comparable<Truck>{
         builder.append(", ");
         builder.append(capacity);
         builder.append(", ");
-        builder.append(hasFriedge);
+        builder.append(hasFridge);
         return builder.toString();
     }
 }
