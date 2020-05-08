@@ -1,19 +1,16 @@
-package by.gradomski.threads.generator;
+package by.gradomski.threads.factory;
 
 import by.gradomski.threads.entity.Truck;
 import by.gradomski.threads.queue.TruckQueue;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-public class TruckGenerator extends Thread{
+public class TruckFactory extends Thread{
     private TruckQueue truckQueue;
     private int count;
 
-    public TruckGenerator(int count){
+    public TruckFactory(int count){
         this.count = count;
         truckQueue = new TruckQueue();
     }

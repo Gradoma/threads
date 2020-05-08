@@ -13,11 +13,11 @@ public class Truck implements Comparable<Truck>{
         this.hasFriedge = hasFriedge;
     }
 
-    public int getId() {
+    public int getTruckId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setTruckId(int id) {
         this.id = id;
     }
 
