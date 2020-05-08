@@ -1,6 +1,6 @@
 package by.gradomski.threads.entity;
 
-public class Truck implements Comparable<Truck>{
+public class Truck extends Thread implements Comparable<Truck>{
     private int id;
     private int capacity;
     private boolean hasFridge;
@@ -35,6 +35,11 @@ public class Truck implements Comparable<Truck>{
 
     public void setHasFridge(boolean hasFridge) {
         this.hasFridge = hasFridge;
+    }
+
+    @Override
+    public void run() {
+        // get Gate, start loading/unloading, return Gate
     }
 
     @Override
