@@ -1,6 +1,7 @@
 package by.gradomski.threads.entity;
 
 import by.gradomski.threads.exception.LogisticBaseException;
+import by.gradomski.threads.queue.TestQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,6 +12,7 @@ public class Truck extends Thread implements Comparable<Truck>{
     private int id;
     private int capacity;
     private boolean hasFridge;
+    private TestQueue testQueue = TestQueue.getInstance();                      // DELETE!!!!
 
     public Truck(){}
 
@@ -50,19 +52,26 @@ public class Truck extends Thread implements Comparable<Truck>{
         // get Gate, start loading/unloading, return Gate
         logger.info("Truck " + this.id + " start running");
         LogisticBase base = LogisticBase.getInstance();
-        Gate gate = null;
+        Gate gate;
         try{
             gate = base.getGate(this.id);
             logger.info("Truck " + this.id + " get Gate №" + gate.getGateId());
+        }catch (LogisticBaseException l){
+            logger.warn("No free gates");
+            gate = testQueue.addTruckToQueue(this);
+        }
+        try {
             gate.loading(capacity);
             TimeUnit.MILLISECONDS.sleep(capacity * 100);
             logger.info("Truck " + this.id + "unloaded.");
-        }catch (LogisticBaseException | InterruptedException e){
+        }catch (InterruptedException | LogisticBaseException e){
             logger.error("Truck " + this.id + " can't unload");
             e.printStackTrace();
         } finally {
             logger.info("Truck " + this.id + " return gate " + gate.getGateId()) ;
             base.returnGate(gate);
+            boolean isLeft = testQueue.leaveQueue(this);
+            logger.info("Truck " + this.id + " is LEFT? " + isLeft);
         }
     }
 

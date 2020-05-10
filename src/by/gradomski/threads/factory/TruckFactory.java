@@ -20,6 +20,6 @@ public class TruckFactory {
 
     private boolean getRandomBoolean(){     //will be removed(reading from file)
         double randomDouble = Math.random();
-        return randomDouble <= 0.3;
+        return randomDouble <= 0.5;
     }
 }
