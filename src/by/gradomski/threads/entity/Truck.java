@@ -1,6 +1,13 @@
 package by.gradomski.threads.entity;
 
+import by.gradomski.threads.exception.LogisticBaseException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.concurrent.TimeUnit;
+
 public class Truck extends Thread implements Comparable<Truck>{
+    private static Logger logger = LogManager.getLogger();
     private int id;
     private int capacity;
     private boolean hasFridge;
@@ -11,6 +18,7 @@ public class Truck extends Thread implements Comparable<Truck>{
         this.id = id;
         this.capacity = capacity;
         this.hasFridge = hasFridge;
+        logger.info("Truck created: " + id + ", "+ capacity + ", " + hasFridge);
     }
 
     public int getTruckId() {
@@ -40,6 +48,22 @@ public class Truck extends Thread implements Comparable<Truck>{
     @Override
     public void run() {
         // get Gate, start loading/unloading, return Gate
+        logger.info("Truck " + this.id + " start running");
+        LogisticBase base = LogisticBase.getInstance();
+        Gate gate = null;
+        try{
+            gate = base.getGate(this.id);
+            logger.info("Truck " + this.id + " get Gate №" + gate.getGateId());
+            gate.loading(capacity);
+            TimeUnit.MILLISECONDS.sleep(capacity * 100);
+            logger.info("Truck " + this.id + "unloaded.");
+        }catch (LogisticBaseException | InterruptedException e){
+            logger.error("Truck " + this.id + " can't unload");
+            e.printStackTrace();
+        } finally {
+            logger.info("Truck " + this.id + " return gate " + gate.getGateId()) ;
+            base.returnGate(gate);
+        }
     }
 
     @Override

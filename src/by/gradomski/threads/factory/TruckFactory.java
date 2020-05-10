@@ -10,7 +10,6 @@ public class TruckFactory {
     private static Logger logger = LogManager.getLogger();
 
     public Truck createTruck(int i){            //parameter int remove! (reading from file)
-        logger.info("Truck " + (i+1) + " created.");
         return new Truck(i + 1, getRandomCapacity(), getRandomBoolean());
     }
 
