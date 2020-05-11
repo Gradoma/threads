@@ -120,7 +120,9 @@ public class LogisticBase {
 
     public Gate getGateAcquire() throws LogisticBaseException{
         try {
+            logger.info("Start method getGateAcquire");
             semaphore.acquire();
+            logger.info("Semaphore let access...");
             return gateList.poll();
         } catch (InterruptedException e) {
             throw new LogisticBaseException(e);

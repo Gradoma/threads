@@ -64,6 +64,7 @@ public class TestQueue {
         } finally {
             condition.signalAll();
             lock.unlock();
+            logger.info("Truck " + truck.getTruckId() + " signal and unlock");
         }
         if(g == null){
             System.out.println("==========GATE NULL WILL RETURN!!!!======");

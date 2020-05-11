@@ -57,7 +57,7 @@ public class Truck extends Thread implements Comparable<Truck>{
             gate = base.getGate(this.id);
             logger.info("Truck " + this.id + " get Gate №" + gate.getGateId());
         }catch (LogisticBaseException l){
-            logger.warn("No free gates");
+            logger.warn("No free gates for Truck " + this.id);
             gate = testQueue.addTruckToQueue(this);
         }
         try {
