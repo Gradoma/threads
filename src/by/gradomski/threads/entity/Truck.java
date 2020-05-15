@@ -1,7 +1,6 @@
 package by.gradomski.threads.entity;
 
 import by.gradomski.threads.exception.LogisticBaseException;
-import by.gradomski.threads.queue.TestQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,7 +11,6 @@ public class Truck extends Thread implements Comparable<Truck>{
     private int id;
     private int capacity;
     private boolean hasFridge;
-    private TestQueue testQueue = TestQueue.getInstance();                      // DELETE!!!!
 
     public Truck(){}
 
@@ -47,31 +45,35 @@ public class Truck extends Thread implements Comparable<Truck>{
         this.hasFridge = hasFridge;
     }
 
-    @Override
+        @Override
     public void run() {
-        // get Gate, start loading/unloading, return Gate
         logger.info("Truck " + this.id + " start running");
         LogisticBase base = LogisticBase.getInstance();
-        Gate gate;
-        try{
-            gate = base.getGate(this.id);
-            logger.info("Truck " + this.id + " get Gate №" + gate.getGateId());
-        }catch (LogisticBaseException l){
-            logger.warn("No free gates for Truck " + this.id);
-            gate = testQueue.addTruckToQueue(this);
+        Gate gate = base.getGate();
+        try {
+            if (gate == null) {
+                base.addTruckToQueue(this);
+                gate = base.getGateByTruckQueue(this);
+            }
+        } catch (LogisticBaseException e) {
+            logger.error("Exception while get Gate!!!! ");
+            e.printStackTrace();
         }
+        logger.info("Truck " + this.id + " get Gate №" + gate.getGateId());
+        base.leaveQueue(this);
         try {
             gate.loading(capacity);
             TimeUnit.MILLISECONDS.sleep(capacity * 100);
             logger.info("Truck " + this.id + "unloaded.");
-        }catch (InterruptedException | LogisticBaseException e){
-            logger.error("Truck " + this.id + " can't unload");
-            e.printStackTrace();
+        } catch (LogisticBaseException e1) {
+            logger.error("Exception while loading!!!!");
+            e1.printStackTrace();
+        } catch (InterruptedException iEx){
+            logger.error("InterruptedException!!!!");
+            iEx.printStackTrace();
         } finally {
             logger.info("Truck " + this.id + " return gate " + gate.getGateId()) ;
             base.returnGate(gate);
-            boolean isLeft = testQueue.leaveQueue(this);
-            logger.info("Truck " + this.id + " is LEFT? " + isLeft);
         }
     }
 

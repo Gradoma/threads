@@ -14,25 +14,30 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class LogisticBase {
     private static Logger logger = LogManager.getLogger();
-    private static final int BASE_SIZE = 3;
+    public static final int BASE_SIZE = 4;
+    public int baseCapacity = 1000;
     private final Semaphore semaphore = new Semaphore(BASE_SIZE, true);
     private final Queue<Gate> gateList = new LinkedList<>();
     private PriorityQueue<Truck> truckQueue = new PriorityQueue<>();
-    private static LogisticBase instance = null;
-    private static ReentrantLock lock = new ReentrantLock();
+    private static LogisticBase instance;
+    private static Lock lock = new ReentrantLock();
     private Condition condition = lock.newCondition();
-    public int baseCapacity = 1000;
+    private static ReentrantLock checkingLock = new ReentrantLock();
+    private Condition checkingCondition = checkingLock.newCondition();
 
     private LogisticBase() { };
 
     public static LogisticBase getInstance() {
-        lock.lock();
-        try {
-            if (instance == null) {
-                instance = new LogisticBase();
+        if(instance == null){
+            lock.lock();
+            try {
+                if (instance == null) {
+                    instance = new LogisticBase();
+                }
+            } finally {
+                lock.unlock();
             }
-        } finally {
-            lock.unlock();
+            return instance;
         }
         return instance;
     }
@@ -40,107 +45,58 @@ public class LogisticBase {
     public boolean addGateToList(Gate gate) {
         return gateList.add(gate);
     }
-//
-//    public void addTruckToQueue(Truck truck) {
-//        try {
-//            lock.lock();
-//            logger.info("Truck " + truck.getTruckId() + " will be added to Queue");
-//            if (truckQueue.isEmpty()) {
-//                logger.info("Truck Queue is empty");
-//                truckQueue.add(truck);
-//                logger.info("Truck " + truck.getTruckId() + " added. \nQueue after adding: " + truckQueue);
-//            } else {
-//                truckQueue.add(truck);
-//                logger.info("Truck " + truck.getTruckId() + " added. \nQueue after adding: " + truckQueue);
-//            }
-//        }catch (InterruptedException e){
-//            logger.error("InterruptedException ");
-//            e.printStackTrace();
-//        } finally {
-//            lock.unlock();
-//        }
-//    }
-//
-//    public void leaveQueue() {
-//        Truck truck = null;
-//        try {
-//
-//            logger.info("Method leave");
-//            lock.lock();
-//            truck = truckQueue.remove();
-//            logger.info("Truck " + truck.getTruckId() + " unloaded and leave Queue!!! \nQueue after leaving: " + truckQueue);
-//        } finally {
-//            lock.unlock();
-//        }
-//    }
 
-//    public Gate addTruckToQueue(Truck truck) {
-//        Gate gate = null;
-//        try {
-//            lock.lock();
-//            logger.info("Truck " + truck.getTruckId() + " will be added to Queue");
-//            truckQueue.add(truck);
-//            logger.info("Truck " + truck.getTruckId() + " added. \nQueue after adding: " + truckQueue);
-//            if (truckQueue.peek().equals(truck)) {
-//                logger.info("Truck " + truck.getTruckId() + " is 1st in Queue");
-//                semaphore.acquire();
-//                gate = gateList.poll();
-//            } else {
-//                logger.info("Truck " + truck.getTruckId() + " don't first.");
-//                condition.await();
-//            }
-//        }catch (InterruptedException e){
-//            logger.error("InterruptedException ");
-//            e.printStackTrace();
-//        } finally {
-//            condition.signalAll();
-//            lock.unlock();
-//        }
-//        if(gate == null){
-//            logger.warn("Gate is null!!");
-//        }
-//        return gate;
-//    }
-//
-//    public boolean leaveQueue(Truck truck){
-//        try {
-//            lock.lock();
-//            logger.info("Method leave");
-//            if(truckQueue.contains(truck)){
-//                truck = truckQueue.remove();
-//                logger.info("Truck " + truck.getTruckId() + " unloaded and leave Queue!!! \nQueue after leaving: " + truckQueue);
-//                return true;
-//            }
-//            return false;
-//        } finally {
-//            condition.signalAll();
-//            lock.unlock();
-//        }
-//    }
-
-    public Gate getGateAcquire() throws LogisticBaseException{
-        try {
-            logger.info("Start method getGateAcquire");
-            semaphore.acquire();
-            logger.info("Semaphore let access...");
-            return gateList.poll();
-        } catch (InterruptedException e) {
-            throw new LogisticBaseException(e);
-        }
-    }
-
-    public Gate getGate(int truckNumber) throws LogisticBaseException {      // DELETE PARAMETER!!!!
-        logger.info("Truck " + truckNumber + " trying to get Gate...");
-//
+    public Gate getGate() {
         if (semaphore.tryAcquire()) {
             logger.info("Gate free!!!");
             return gateList.poll();
         }
-        throw new LogisticBaseException("no free gates");
+        return null;
     }
 
     public void returnGate(Gate gate) {
         gateList.add(gate);
         semaphore.release();
+    }
+
+    public void addTruckToQueue(Truck truck){
+        try {
+            lock.lock();
+            truckQueue.add(truck);
+            logger.info("Truck " + truck.getTruckId() + " added. Queue after adding: \n" + truckQueue);
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    public Gate getGateByTruckQueue(Truck truck)throws LogisticBaseException{
+        try {
+            checkingLock.lock();
+            while (truckQueue.peek() != truck) {
+                checkingCondition.await();
+            }
+            checkingLock.unlock();
+            semaphore.acquire();
+            return gateList.poll();
+        } catch (InterruptedException e) {
+            throw new LogisticBaseException(e);
+        } finally {
+            if (checkingLock.isLocked()){
+                checkingLock.unlock();
+            }
+        }
+    }
+
+    public void leaveQueue(Truck truck){
+        try{
+            lock.lock();
+            checkingLock.lock();
+            truckQueue.remove(truck);
+            logger.info("Truck " + truck.getTruckId() + " left. Queue after leaving: \n" + truckQueue);
+        }finally {
+            lock.unlock();
+            checkingCondition.signalAll();
+            checkingLock.unlock();
+        }
     }
 }
