@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -15,7 +16,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class LogisticBase {
     private static Logger logger = LogManager.getLogger();
     public static final int BASE_SIZE = 4;
-    public int baseCapacity = 1000;
+    public final int baseCapacity = 1000;
+    private AtomicInteger currentLoaded = new AtomicInteger(0);
     private final Semaphore semaphore = new Semaphore(BASE_SIZE, true);
     private final Queue<Gate> gateList = new LinkedList<>();
     private PriorityQueue<Truck> truckQueue = new PriorityQueue<>();
@@ -24,8 +26,9 @@ public class LogisticBase {
     private Condition condition = lock.newCondition();
     private static ReentrantLock checkingLock = new ReentrantLock();
     private Condition checkingCondition = checkingLock.newCondition();
+    private static ReentrantLock loadLock = new ReentrantLock();
 
-    private LogisticBase() { };
+    private LogisticBase() { }
 
     public static LogisticBase getInstance() {
         if(instance == null){
@@ -42,13 +45,21 @@ public class LogisticBase {
         return instance;
     }
 
+    public int getFreeSpace(){
+        return baseCapacity - currentLoaded.get();
+    }
+
+    public void addCargo(int cargoWeight){
+        currentLoaded.addAndGet(cargoWeight);
+    }
+
     public boolean addGateToList(Gate gate) {
         return gateList.add(gate);
     }
 
     public Gate getGate() {
         if (semaphore.tryAcquire()) {
-            logger.info("Gate free!!!");
+            logger.info("Gate free!");
             return gateList.poll();
         }
         return null;

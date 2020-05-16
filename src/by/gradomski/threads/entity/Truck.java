@@ -72,8 +72,8 @@ public class Truck extends Thread implements Comparable<Truck>{
         logger.info("Truck " + this.id + " get Gate №" + gate.getGateId());
         base.leaveQueue(this);
         try {
-            gate.loading(capacity);
-            TimeUnit.MILLISECONDS.sleep(capacity * 100);
+            gate.loading(loadedWeight);
+            TimeUnit.MILLISECONDS.sleep(loadedWeight * 100);
             logger.info("Truck " + this.id + "unloaded.");
         } catch (LogisticBaseException e1) {
             logger.error("Exception while loading!!!!");

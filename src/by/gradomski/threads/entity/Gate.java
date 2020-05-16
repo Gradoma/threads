@@ -22,9 +22,9 @@ public class Gate {
     public void loading(int cargoWeight) throws LogisticBaseException{
         logger.info("Gate " + gateId + " : Loading method start: " + cargoWeight + " cargo");
         LogisticBase base = LogisticBase.getInstance();
-        if (base.baseCapacity >= cargoWeight){
+        if (base.getFreeSpace() >= cargoWeight){
             logger.info("Gate " + gateId + " : has space");
-            base.baseCapacity = base.baseCapacity - cargoWeight;
+            base.addCargo(-cargoWeight);
             logger.info("Gate " + gateId + " : space after loading: " + base.baseCapacity);
         } else {
             logger.error("Gate " + gateId + " : NO SPACE");
