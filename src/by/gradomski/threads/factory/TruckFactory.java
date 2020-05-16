@@ -9,17 +9,11 @@ import java.util.Random;
 public class TruckFactory {
     private static Logger logger = LogManager.getLogger();
 
-    public Truck createTruck(int i){            //parameter int remove! (reading from file)
-        return new Truck(i + 1, getRandomCapacity(), getRandomBoolean());
-    }
-
-    private int getRandomCapacity(){        //will be removed(reading from file)
-        Random random = new Random();
-        return random.nextInt(16) + 4;
-    }
-
-    private boolean getRandomBoolean(){     //will be removed(reading from file)
-        double randomDouble = Math.random();
-        return randomDouble <= 0.3;
+    public Truck createTruck(int id, int capacity, int loadedWeight, int hasFriedge){
+        boolean friedge = false;
+        if (hasFriedge == 1){
+            friedge = true;
+        }
+        return new Truck(id, capacity, loadedWeight, friedge);
     }
 }

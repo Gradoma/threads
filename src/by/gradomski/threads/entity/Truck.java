@@ -10,15 +10,17 @@ public class Truck extends Thread implements Comparable<Truck>{
     private static Logger logger = LogManager.getLogger();
     private int id;
     private int capacity;
+    private int loadedWeight;
     private boolean hasFridge;
 
     public Truck(){}
 
-    public Truck(int id, int capacity, boolean hasFridge){
+    public Truck(int id, int capacity, int loadedWeight, boolean hasFridge){
         this.id = id;
         this.capacity = capacity;
+        this.loadedWeight = loadedWeight;
         this.hasFridge = hasFridge;
-        logger.info("Truck created: " + id + ", "+ capacity + ", " + hasFridge);
+        logger.info("Truck created: " + id + ", "+ capacity + ", " + loadedWeight + ", " + hasFridge);
     }
 
     public int getTruckId() {
@@ -35,6 +37,14 @@ public class Truck extends Thread implements Comparable<Truck>{
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
+    }
+
+    public int getLoadedWeight() {
+        return loadedWeight;
+    }
+
+    public void setLoadedWeight(int loadedWeight) {
+        this.loadedWeight = loadedWeight;
     }
 
     public boolean hasFridge() {
@@ -104,14 +114,19 @@ public class Truck extends Thread implements Comparable<Truck>{
         if (capacity != truck.capacity) {
             return false;
         }
+        if (loadedWeight != truck.loadedWeight){
+            return false;
+        }
         return hasFridge == truck.hasFridge;
     }
 
     @Override
     public int hashCode() {
+        int prime = 31;
         int result = id;
-        result = 31 * result + capacity;
-        result = 31 * result + (hasFridge ? 1 : 0);
+        result = prime * result + capacity;
+        result = prime * result + loadedWeight;
+        result = prime * result + (hasFridge ? 1 : 0);
         return result;
     }
 
@@ -123,6 +138,8 @@ public class Truck extends Thread implements Comparable<Truck>{
         builder.append(id);
         builder.append(", ");
         builder.append(capacity);
+        builder.append(", ");
+        builder.append(loadedWeight);
         builder.append(", ");
         builder.append(hasFridge);
         return builder.toString();
