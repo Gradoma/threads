@@ -36,8 +36,8 @@ public class Main {
             int truckNumber = i[0];
             int capacity = i[1];
             int loadedWeight = i[2];
-            int hasFriedge = i[3];
-            truck = factory.createTruck(truckNumber, capacity, loadedWeight, hasFriedge);
+            int hasFridge = i[3];
+            truck = factory.createTruck(truckNumber, capacity, loadedWeight, hasFridge);
             truck.start();
         }
     }

@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -22,8 +21,7 @@ public class LogisticBase {
     private static LogisticBase instance;
     private static Lock lock = new ReentrantLock();
     private Condition condition = lock.newCondition();
-    private static ReentrantLock checkingLock = new ReentrantLock();
-    private Condition checkingCondition = checkingLock.newCondition();
+    private static Lock gateLock = new ReentrantLock();
 
     private LogisticBase() { }
 
@@ -46,57 +44,59 @@ public class LogisticBase {
         return gateList.add(gate);
     }
 
-    public Gate getGate() {
-        if (semaphore.tryAcquire()) {
-            logger.info("Gate free!");
+    public Gate getGate(Truck truck) throws LogisticBaseException{
+        try {
+            if (semaphore.tryAcquire()) {
+                gateLock.lock();
+                logger.info("Gate free!");
+                return gateList.poll();
+            }
+            addToQueue(truck);
+            semaphore.acquire();
+            gateLock.lock();
             return gateList.poll();
+        } catch (InterruptedException e){
+            logger.error("InterruptedException");
+            throw new LogisticBaseException(e);
         }
-        return null;
+        finally {
+            if (truckQueue.contains(truck)){
+                leaveQueue(truck);
+            }
+            gateLock.unlock();
+        }
     }
 
     public void returnGate(Gate gate) {
+        gateLock.lock();
         gateList.add(gate);
         semaphore.release();
+        gateLock.unlock();
     }
 
-    public void addTruckToQueue(Truck truck){
+    private void addToQueue(Truck truck){
         try {
             lock.lock();
             truckQueue.add(truck);
-            logger.info("Truck " + truck.getTruckId() + " added. Queue after adding: \n" + truckQueue);
+            logger.info("Truck " + truck.getTruckId() + " added. Queue : \n" + truckQueue);
+            while (truckQueue.peek() != truck) {
+                condition.await();
+            }
+        } catch (InterruptedException e){
+            e.printStackTrace();
         }finally {
             lock.unlock();
         }
     }
 
-    public Gate getGateByTruckQueue(Truck truck)throws LogisticBaseException{
-        try {
-            checkingLock.lock();
-            while (truckQueue.peek() != truck) {
-                checkingCondition.await();
-            }
-            checkingLock.unlock();
-            semaphore.acquire();
-            return gateList.poll();
-        } catch (InterruptedException e) {
-            throw new LogisticBaseException(e);
-        } finally {
-            if (checkingLock.isLocked()){
-                checkingLock.unlock();
-            }
-        }
-    }
-
-    public void leaveQueue(Truck truck){
+    private void leaveQueue(Truck truck){
         try{
             lock.lock();
-            checkingLock.lock();
             truckQueue.remove(truck);
-            logger.info("Truck " + truck.getTruckId() + " left. Queue after leaving: \n" + truckQueue);
-        }finally {
+            logger.info("Truck " + truck.getTruckId() + " left. Queue : \n" + truckQueue);
+        } finally {
+            condition.signalAll();
             lock.unlock();
-            checkingCondition.signalAll();
-            checkingLock.unlock();
         }
     }
 }

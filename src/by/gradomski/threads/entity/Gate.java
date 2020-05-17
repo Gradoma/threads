@@ -1,7 +1,5 @@
 package by.gradomski.threads.entity;
 
-import by.gradomski.threads.exception.LoadingProcessException;
-import by.gradomski.threads.exception.LogisticBaseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,9 +8,8 @@ public class Gate {
     private static int counter = 1;
     private int gateId;
     private final int gateCapacity = 100;
-    private int currentLoaded = 50;
-    private double loadFactor = 0.75;
-    private LogisticBase base = LogisticBase.getInstance();
+    private int currentLoaded = 30;
+    private final double loadFactor = 0.75;
 
     public Gate(){
         this.gateId = counter;
@@ -24,22 +21,9 @@ public class Gate {
         return gateId;
     }
 
-//    public void unloadTruck(int cargoWeight) throws LogisticBaseException{
-//        logger.info("Gate " + gateId + " : Unloading method start: " + cargoWeight + " cargo");
-//        if (base.calculateFreeSpace() >= cargoWeight){
-//            logger.info("Gate " + gateId + " : Base has space");
-//            base.addCargo(cargoWeight);
-//            logger.info("Gate " + gateId + " : Base space after unloadTruck: " + base.calculateFreeSpace());
-//        } else {
-//            logger.error("Gate " + gateId + " : NO SPACE");
-//            throw new LogisticBaseException("no space on base");
-//        }
-//    }
-
     public void unloadTruck(int cargoWeight){
         logger.info("Gate " + gateId + " : Unloading method start: " + cargoWeight + " cargo");
-//        base.addCargo(cargoWeight);
-        if (currentLoaded / gateCapacity >= loadFactor){
+        if (gateCapacity * loadFactor < currentLoaded){
             logger.debug("LoadFactor exceeded, storage will be erased");
             currentLoaded = 0;
         }
@@ -48,7 +32,6 @@ public class Gate {
 
     public int loadTruck(int truckCapacity){
         logger.info("Gate " + gateId + " : Loading method start: " + truckCapacity + " cargo");
-//        base.getCargo(truckCapacity);
         if (currentLoaded == 0){
             logger.debug("No cargo in storage, generate cargo");
             currentLoaded = 50;
@@ -73,11 +56,17 @@ public class Gate {
         }
 
         Gate gate = (Gate) o;
-        return gateId == gate.gateId;
+        if (gateId != gate.gateId){
+            return false;
+        }
+        return currentLoaded == gate.currentLoaded;
     }
 
     @Override
     public int hashCode() {
-        return gateId;
+        int prime = 31;
+        int result = gateId;
+        result = prime * result + currentLoaded;
+        return result;
     }
 }

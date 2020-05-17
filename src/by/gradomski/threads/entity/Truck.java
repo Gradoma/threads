@@ -55,23 +55,12 @@ public class Truck extends Thread implements Comparable<Truck>{
         this.hasFridge = hasFridge;
     }
 
-        @Override
-    public void run() {
-        logger.info("Truck " + this.id + " start running");
+    public void run(){
         LogisticBase base = LogisticBase.getInstance();
-        Gate gate = base.getGate();
+        Gate gate = null;
         try {
-            if (gate == null) {
-                base.addTruckToQueue(this);
-                gate = base.getGateByTruckQueue(this);
-            }
-        } catch (LogisticBaseException e) {
-            logger.error("Exception while get Gate!!!! ");
-            e.printStackTrace();
-        }
-        logger.info("Truck " + this.id + " get Gate №" + gate.getGateId());
-        base.leaveQueue(this);
-        try {
+            gate = base.getGate(this);
+            logger.info("Truck " + this.id + " get Gate №" + gate.getGateId());
             if(loadedWeight != 0){
                 gate.unloadTruck(loadedWeight);
                 TimeUnit.MILLISECONDS.sleep(loadedWeight * 100);
@@ -81,14 +70,11 @@ public class Truck extends Thread implements Comparable<Truck>{
                 TimeUnit.MILLISECONDS.sleep(capacity * 100);
                 logger.info("Truck " + this.id + " loaded.");
             }
-//        } catch (LogisticBaseException e1) {
-//            logger.error("Exception while unloadTruck!!!!");
-//            e1.printStackTrace();
+        } catch (LogisticBaseException e1) {
+            logger.error("LogisticBaseException: " + e1.getMessage());
         } catch (InterruptedException iEx){
-            logger.error("InterruptedException!!!!");
-            iEx.printStackTrace();
+            logger.error("InterruptedException: " + iEx.getMessage());
         } finally {
-            logger.info("Truck " + this.id + " return gate " + gate.getGateId()) ;
             base.returnGate(gate);
         }
     }

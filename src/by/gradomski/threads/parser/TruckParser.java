@@ -5,12 +5,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TruckParser {
     private static Logger logger = LogManager.getLogger();
-    private static final Pattern PATTERN = Pattern.compile("(\\d+?)\\s(\\d+?)\\s(\\d+?)");
     private static final String lineDelim = ";";
     private static final String paramDelim = " ";
 
