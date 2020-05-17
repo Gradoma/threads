@@ -1,5 +1,6 @@
 package by.gradomski.threads.entity;
 
+import by.gradomski.threads.exception.LoadingProcessException;
 import by.gradomski.threads.exception.LogisticBaseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,6 +9,9 @@ public class Gate {
     private static Logger logger = LogManager.getLogger();
     private static int counter = 1;
     private int gateId;
+    private final int gateCapacity = 100;
+    private int currentLoaded = 50;
+    private double loadFactor = 0.75;
     private LogisticBase base = LogisticBase.getInstance();
 
     public Gate(){
@@ -34,12 +38,29 @@ public class Gate {
 
     public void unloadTruck(int cargoWeight){
         logger.info("Gate " + gateId + " : Unloading method start: " + cargoWeight + " cargo");
-        base.addCargo(cargoWeight);
+//        base.addCargo(cargoWeight);
+        if (currentLoaded / gateCapacity >= loadFactor){
+            logger.debug("LoadFactor exceeded, storage will be erased");
+            currentLoaded = 0;
+        }
+        currentLoaded += cargoWeight;
     }
 
-    public void loadTruck(int truckCapacity){
+    public int loadTruck(int truckCapacity){
         logger.info("Gate " + gateId + " : Loading method start: " + truckCapacity + " cargo");
-        base.getCargo(truckCapacity);
+//        base.getCargo(truckCapacity);
+        if (currentLoaded == 0){
+            logger.debug("No cargo in storage, generate cargo");
+            currentLoaded = 50;
+        }
+        if(currentLoaded < truckCapacity){
+            logger.info("Not enough cargo to load truck full");
+            int cargoToLoad = currentLoaded;
+            currentLoaded = 0;
+            return cargoToLoad;
+        }
+        currentLoaded -= truckCapacity;
+        return truckCapacity;
     }
 
     @Override
