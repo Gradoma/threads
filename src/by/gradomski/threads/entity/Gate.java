@@ -8,6 +8,7 @@ public class Gate {
     private static Logger logger = LogManager.getLogger();
     private static int counter = 1;
     private int gateId;
+    private LogisticBase base = LogisticBase.getInstance();
 
     public Gate(){
         this.gateId = counter;
@@ -19,17 +20,26 @@ public class Gate {
         return gateId;
     }
 
-    public void loading(int cargoWeight) throws LogisticBaseException{
-        logger.info("Gate " + gateId + " : Loading method start: " + cargoWeight + " cargo");
-        LogisticBase base = LogisticBase.getInstance();
-        if (base.getFreeSpace() >= cargoWeight){
-            logger.info("Gate " + gateId + " : has space");
-            base.addCargo(-cargoWeight);
-            logger.info("Gate " + gateId + " : space after loading: " + base.baseCapacity);
-        } else {
-            logger.error("Gate " + gateId + " : NO SPACE");
-            throw new LogisticBaseException("no space on base");
-        }
+//    public void unloadTruck(int cargoWeight) throws LogisticBaseException{
+//        logger.info("Gate " + gateId + " : Unloading method start: " + cargoWeight + " cargo");
+//        if (base.calculateFreeSpace() >= cargoWeight){
+//            logger.info("Gate " + gateId + " : Base has space");
+//            base.addCargo(cargoWeight);
+//            logger.info("Gate " + gateId + " : Base space after unloadTruck: " + base.calculateFreeSpace());
+//        } else {
+//            logger.error("Gate " + gateId + " : NO SPACE");
+//            throw new LogisticBaseException("no space on base");
+//        }
+//    }
+
+    public void unloadTruck(int cargoWeight){
+        logger.info("Gate " + gateId + " : Unloading method start: " + cargoWeight + " cargo");
+        base.addCargo(cargoWeight);
+    }
+
+    public void loadTruck(int truckCapacity){
+        logger.info("Gate " + gateId + " : Loading method start: " + truckCapacity + " cargo");
+        base.getCargo(truckCapacity);
     }
 
     @Override

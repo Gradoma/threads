@@ -15,7 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class LogisticBase {
     private static Logger logger = LogManager.getLogger();
-    public static final int BASE_SIZE = 4;
+    public static final int BASE_SIZE = 3;
     public final int baseCapacity = 1000;
     private AtomicInteger currentLoaded = new AtomicInteger(0);
     private final Semaphore semaphore = new Semaphore(BASE_SIZE, true);
@@ -26,7 +26,8 @@ public class LogisticBase {
     private Condition condition = lock.newCondition();
     private static ReentrantLock checkingLock = new ReentrantLock();
     private Condition checkingCondition = checkingLock.newCondition();
-    private static ReentrantLock loadLock = new ReentrantLock();
+    private static ReentrantLock cargoLock = new ReentrantLock();
+    private Condition cargoCondition = cargoLock.newCondition();
 
     private LogisticBase() { }
 
@@ -45,12 +46,45 @@ public class LogisticBase {
         return instance;
     }
 
-    public int getFreeSpace(){
-        return baseCapacity - currentLoaded.get();
+    public void calculateFreeSpace(){           //DELETE !!!
+        cargoLock.lock();
+        System.out.println("Total: " + baseCapacity);
+        System.out.println("Loaded: " + currentLoaded.get());
+        System.out.println("Free space: " + (baseCapacity - currentLoaded.get()));
+        double percentLoaded = ((double)currentLoaded.get() / baseCapacity) * 100;
+        double percentFree = 100 - percentLoaded;
+        System.out.println("Free - " + percentFree + "; Loaded - " + percentLoaded);
+        cargoLock.unlock();
     }
 
     public void addCargo(int cargoWeight){
-        currentLoaded.addAndGet(cargoWeight);
+        try{
+            cargoLock.lock();
+            while(baseCapacity - currentLoaded.get() < cargoWeight){
+                cargoCondition.await();
+            }
+            currentLoaded.addAndGet(cargoWeight);
+        } catch (InterruptedException e){
+            logger.error("InterruptedException");
+        } finally {
+            cargoCondition.signalAll();
+            cargoLock.unlock();
+        }
+    }
+
+    public void getCargo(int truckCapacity){
+        try{
+            cargoLock.lock();
+            while (currentLoaded.get() == 0 || currentLoaded.get() < truckCapacity){
+                cargoCondition.await();
+            }
+            currentLoaded.addAndGet(-truckCapacity);
+        } catch (InterruptedException e){
+            logger.error("InterruptedException");
+        } finally {
+            cargoCondition.signalAll();
+            cargoLock.unlock();
+        }
     }
 
     public boolean addGateToList(Gate gate) {
